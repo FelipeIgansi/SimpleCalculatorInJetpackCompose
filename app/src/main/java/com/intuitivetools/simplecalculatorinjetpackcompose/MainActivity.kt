@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -44,7 +42,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Calculator()
+                    Calculator(vm = ViewModelCalculator())
                 }
             }
         }
@@ -52,7 +50,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Calculator() {
+fun Calculator(vm: ViewModelCalculator) {
 
     val buttons = listOf(
         "%", "CE", "C", "⌫",
@@ -68,8 +66,17 @@ fun Calculator() {
     Column(verticalArrangement = Arrangement.Bottom) {
         Text(
             text = expression,
-            color = Color.White,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.End,
+            fontSize = 24.sp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .height(60.dp)
+//                .background(color = Color.Black)
+        )
+        Text(
+            text = vm.result,
+            textAlign = TextAlign.End,
             fontSize = 24.sp,
             modifier = Modifier
                 .fillMaxWidth()
@@ -83,9 +90,15 @@ fun Calculator() {
                     Button(
                         onClick = {
                             if (button == "=") {
-                                // Handle calculation here and update expression
+                                vm.realizaCalculo()
                             } else {
-                                expression += button
+                                if (vm.isNumeric(button) || vm.isOperation(button)) {
+                                    expression += button
+                                }
+                                /*TODO (inicialmente vou implementar os calculos sendo feitos com
+                                   dois valores e sem validação. Implementar validações para o texto
+                                   que for senddo digitado)
+                                    */
                             }
                         },
                         colors = ButtonDefaults.buttonColors(buttonColor), // Add this line
@@ -113,8 +126,7 @@ fun Calculator() {
 )
 @Composable
 fun CalculatorPreview() {
-
     SimpleCalculatorInJetpackComposeTheme {
-        Calculator()
+        Calculator(vm = ViewModelCalculator())
     }
 }
