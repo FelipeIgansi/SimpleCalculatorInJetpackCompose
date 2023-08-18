@@ -7,15 +7,13 @@ import androidx.lifecycle.ViewModel
 
 class ViewModelCalculator : ViewModel() {
 
-    private var firstNumber by mutableStateOf("")
-    private var secondNumber by mutableStateOf("")
-    private var qualOperacao by mutableStateOf("")
+    var firstNumber by mutableStateOf("")
+    var secondNumber by mutableStateOf("")
+    var qualOperacao by mutableStateOf("")
     var result by mutableStateOf("")
     private var calculateModel = CalculatorModel()
-    val numeric = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0)
-    val operations = listOf("+", "-", "x", "÷")
-
-
+    private val numeric = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0)
+    private val operations = listOf("+", "-", "x", "÷")
 
 
     fun isNumeric(value: String): Boolean {
@@ -34,18 +32,15 @@ class ViewModelCalculator : ViewModel() {
             }
 
             "-" -> {
-                result =
-                    calculateModel.subtract(firstNumber.toInt(), secondNumber.toInt()).toString()
+                result = calculateModel.subtract(firstNumber.toInt(), secondNumber.toInt()).toString()
             }
 
             "x" -> {
-                result =
-                    calculateModel.multiply(firstNumber.toInt(), secondNumber.toInt()).toString()
+                result = calculateModel.multiply(firstNumber.toInt(), secondNumber.toInt()).toString()
             }
 
-            "/" -> {
-                result = calculateModel.divide(firstNumber.toDouble(), secondNumber.toDouble())
-                    .toString()
+            "÷" -> {
+                result = calculateModel.divide(firstNumber.toDouble(), secondNumber.toDouble()).toString()
             }
         }
     }

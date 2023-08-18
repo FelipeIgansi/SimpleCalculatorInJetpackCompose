@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.intuitivetools.simplecalculatorinjetpackcompose
 
 import android.content.res.Configuration
@@ -15,9 +17,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +46,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    CriaAppBar()
                     Calculator(vm = ViewModelCalculator())
+
                 }
             }
         }
@@ -61,8 +67,9 @@ fun Calculator(vm: ViewModelCalculator) {
         "+/-", "0", ",", "="
     )
 
-    var expression by remember { mutableStateOf("") }
+    val operations = listOf("+", "-", "x", "/")
 
+    var expression by remember { mutableStateOf("") }
     Column(verticalArrangement = Arrangement.Bottom) {
         Text(
             text = expression,
@@ -71,8 +78,8 @@ fun Calculator(vm: ViewModelCalculator) {
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
+                .padding(top = 20.dp, end = 20.dp)
                 .height(60.dp)
-//                .background(color = Color.Black)
         )
         Text(
             text = vm.result,
@@ -82,7 +89,7 @@ fun Calculator(vm: ViewModelCalculator) {
                 .fillMaxWidth()
                 .weight(1f)
                 .height(60.dp)
-//                .background(color = Color.Black)
+                .padding(end = 20.dp)
         )
         buttons.chunked(4).forEach { rowButtons ->
             Row {
@@ -90,10 +97,35 @@ fun Calculator(vm: ViewModelCalculator) {
                     Button(
                         onClick = {
                             if (button == "=") {
+                                val regex = operations.joinToString("|") { Regex.escape(it) }
+                                val parts = expression.split(Regex(regex))
+
+                                vm.firstNumber = parts[0]
+                                vm.secondNumber = parts[1]
+
                                 vm.realizaCalculo()
+                                expression += button
+
+                            } else if (button == "CE") {
+                                val lastOperationIndex = expression.lastIndexOfAny(operations)
+                                expression = if (lastOperationIndex >= 0) {
+                                    expression.dropLast(lastOperationIndex)
+                                } else {
+                                    ""
+                                }
                             } else {
                                 if (vm.isNumeric(button) || vm.isOperation(button)) {
                                     expression += button
+                                }
+                                if ((button == "+") || (button == "-") || (button == "x") || (button == "÷")) {
+                                    vm.qualOperacao = button
+                                }
+                                if (button == "C") {
+                                    vm.qualOperacao = ""
+                                    vm.result = ""
+                                    vm.firstNumber = ""
+                                    vm.secondNumber = ""
+                                    expression = ""
                                 }
                                 /*TODO (inicialmente vou implementar os calculos sendo feitos com
                                    dois valores e sem validação. Implementar validações para o texto
@@ -101,16 +133,15 @@ fun Calculator(vm: ViewModelCalculator) {
                                     */
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(buttonColor), // Add this line
-                        shape = RoundedCornerShape(8.dp), // Add this line
+                        colors = ButtonDefaults.buttonColors(buttonColor),
+                        shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
                             .width(100.dp)
                             .height(100.dp)
                             .padding(1.dp)
                             .weight(1f)
-//                            .background(color = Color.Black)
                     ) {
-                        Text(text = button, color = Color.White) // Add this line
+                        Text(text = button, color = Color.White)
                     }
                 }
             }
@@ -127,6 +158,16 @@ fun Calculator(vm: ViewModelCalculator) {
 @Composable
 fun CalculatorPreview() {
     SimpleCalculatorInJetpackComposeTheme {
+        CriaAppBar()
         Calculator(vm = ViewModelCalculator())
     }
+}
+
+@Composable
+private fun CriaAppBar() {
+    TopAppBar(
+        title = {
+            Text(text = "Calculadora", color = Color.Red)
+        }
+    )
 }
