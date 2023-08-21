@@ -21,7 +21,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,7 +45,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CriaAppBar()
                     Calculator(vm = ViewModelCalculator())
 
                 }
@@ -70,6 +68,10 @@ fun Calculator(vm: ViewModelCalculator) {
     val operations = listOf("+", "-", "x", "/")
 
     var expression by remember { mutableStateOf("") }
+    var lastCharIsOperation by remember { mutableStateOf(false) }
+    var lastChar by remember { mutableStateOf("") }
+
+
     Column(verticalArrangement = Arrangement.Bottom) {
         Text(
             text = expression,
@@ -96,42 +98,56 @@ fun Calculator(vm: ViewModelCalculator) {
                 rowButtons.forEach { button ->
                     Button(
                         onClick = {
-                            if (button == "=") {
-                                val regex = operations.joinToString("|") { Regex.escape(it) }
-                                val parts = expression.split(Regex(regex))
+                            if (expression != "") {
+                                lastChar = expression.last().toString()
+                                lastCharIsOperation = operations.any { it == lastChar }
+                            }
+                            when (button) {
+                                "=" -> {
+                                    val regex = operations.joinToString("|") { Regex.escape(it) }
+                                    val parts = expression.split(Regex(regex))
 
-                                vm.firstNumber = parts[0]
-                                vm.secondNumber = parts[1]
+                                    vm.firstNumber = parts[0]
+                                    vm.secondNumber = parts[1]
 
-                                vm.realizaCalculo()
-                                expression += button
-
-                            } else if (button == "CE") {
-                                val lastOperationIndex = expression.lastIndexOfAny(operations)
-                                expression = if (lastOperationIndex >= 0) {
-                                    expression.dropLast(lastOperationIndex)
-                                } else {
-                                    ""
-                                }
-                            } else {
-                                if (vm.isNumeric(button) || vm.isOperation(button)) {
+                                    vm.realizaCalculo()
                                     expression += button
-                                }
-                                if ((button == "+") || (button == "-") || (button == "x") || (button == "÷")) {
-                                    vm.qualOperacao = button
-                                }
-                                if (button == "C") {
-                                    vm.qualOperacao = ""
-                                    vm.result = ""
+
                                     vm.firstNumber = ""
                                     vm.secondNumber = ""
+                                }
+
+                                "+", "-", "x", "÷" -> {
+                                    expression += button
+                                    vm.qualOperacao = button
+                                }
+
+                                "⌫" -> {/*TODO Implementar*/ }
+
+                                "C" -> {
+                                    vm.clear()
                                     expression = ""
                                 }
-                                /*TODO (inicialmente vou implementar os calculos sendo feitos com
-                                   dois valores e sem validação. Implementar validações para o texto
-                                   que for senddo digitado)
-                                    */
+
+                                "CE" -> {
+                                    val lastOperationIndex = expression.lastIndexOfAny(operations)
+                                    expression = if (lastOperationIndex >= 0) {
+                                        expression.dropLast(lastOperationIndex)
+                                    } else {
+                                        ""
+                                    }
+                                }
+
+                                "%" -> {/*TODO Implementar*/ }
+
+                                "0", "1", "2", "3", "4",
+                                "5", "6", "7", "8", "9" -> expression += button
                             }
+                            /*TODO (inicialmente vou implementar os calculos sendo feitos com
+                               dois valores e sem validação. Implementar validações para o texto
+                               que for senddo digitado)
+                            */
+
                         },
                         colors = ButtonDefaults.buttonColors(buttonColor),
                         shape = RoundedCornerShape(8.dp),
@@ -158,16 +174,6 @@ fun Calculator(vm: ViewModelCalculator) {
 @Composable
 fun CalculatorPreview() {
     SimpleCalculatorInJetpackComposeTheme {
-        CriaAppBar()
         Calculator(vm = ViewModelCalculator())
     }
-}
-
-@Composable
-private fun CriaAppBar() {
-    TopAppBar(
-        title = {
-            Text(text = "Calculadora", color = Color.Red)
-        }
-    )
 }

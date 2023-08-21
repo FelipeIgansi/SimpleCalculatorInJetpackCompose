@@ -12,16 +12,12 @@ class ViewModelCalculator : ViewModel() {
     var qualOperacao by mutableStateOf("")
     var result by mutableStateOf("")
     private var calculateModel = CalculatorModel()
-    private val numeric = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0)
-    private val operations = listOf("+", "-", "x", "÷")
 
-
-    fun isNumeric(value: String): Boolean {
-        return value.all { it.toString().toIntOrNull() in numeric }
-    }
-
-    fun isOperation(value: String): Boolean {
-        return value in operations
+    fun clear(){
+        firstNumber = ""
+        secondNumber = ""
+        qualOperacao = ""
+        result = ""
     }
 
 
