@@ -29,7 +29,7 @@ Column(verticalArrangement = Arrangement.Bottom) {
             Row {
                 rowButtons.forEach { button ->
                     Button(
-                        onClick = {/*TODO this is just a preview. The code was in the file*/},
+                        onClick = {/*TODO Thiss is just a preview. The code is in the file*/},
                         colors = ButtonDefaults.buttonColors(buttonColor),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
