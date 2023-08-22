@@ -1,15 +1,15 @@
 package com.intuitivetools.simplecalculatorinjetpackcompose
 
 class CalculatorModel {
-    fun add(firstNumber: Int, secondNumber: Int): Int {
+    fun add(firstNumber: Double, secondNumber: Double): Double {
         return firstNumber + secondNumber
     }
 
-    fun subtract(firstNumber: Int, secondNumber: Int): Int {
+    fun subtract(firstNumber: Double, secondNumber: Double): Double {
         return firstNumber - secondNumber
     }
 
-    fun multiply(firstNumber: Int, secondNumber: Int): Int {
+    fun multiply(firstNumber: Double, secondNumber: Double): Double {
         return firstNumber * secondNumber
     }
 

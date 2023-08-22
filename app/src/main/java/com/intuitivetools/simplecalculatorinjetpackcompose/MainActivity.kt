@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Calculator(vm = ViewModelCalculator())
+                    Calculator(viewmodel = ViewModelCalculator())
 
                 }
             }
@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Calculator(vm: ViewModelCalculator) {
+fun Calculator(viewmodel: ViewModelCalculator) {
 
     val buttons = listOf(
         "%", "CE", "C", "⌫",
@@ -65,11 +65,12 @@ fun Calculator(vm: ViewModelCalculator) {
         "+/-", "0", ",", "="
     )
 
-    val operations = listOf("+", "-", "x", "/")
+    val operations = listOf("+", "-", "x", "÷")
 
     var expression by remember { mutableStateOf("") }
     var lastCharIsOperation by remember { mutableStateOf(false) }
     var lastChar by remember { mutableStateOf("") }
+    var percentClicked by remember { mutableStateOf(false) }
 
 
     Column(verticalArrangement = Arrangement.Bottom) {
@@ -84,7 +85,7 @@ fun Calculator(vm: ViewModelCalculator) {
                 .height(60.dp)
         )
         Text(
-            text = vm.result,
+            text = viewmodel.result,
             textAlign = TextAlign.End,
             fontSize = 24.sp,
             modifier = Modifier
@@ -107,26 +108,31 @@ fun Calculator(vm: ViewModelCalculator) {
                                     val regex = operations.joinToString("|") { Regex.escape(it) }
                                     val parts = expression.split(Regex(regex))
 
-                                    vm.firstNumber = parts[0]
-                                    vm.secondNumber = parts[1]
+                                    viewmodel.firstNumber = parts[0]
+                                    viewmodel.secondNumber = parts[1]
 
-                                    vm.realizaCalculo()
+                                    viewmodel.realizaCalculo()
                                     expression += button
 
-                                    vm.firstNumber = ""
-                                    vm.secondNumber = ""
+                                    viewmodel.firstNumber = ""
+                                    viewmodel.secondNumber = ""
                                 }
 
                                 "+", "-", "x", "÷" -> {
-                                    expression += button
-                                    vm.qualOperacao = button
+                                    if (!lastCharIsOperation) {
+                                        expression += button
+                                        viewmodel.qualOperacao = button
+                                    }
                                 }
 
-                                "⌫" -> {/*TODO Implementar*/ }
+                                "⌫" -> expression = expression.dropLast(1)
 
                                 "C" -> {
-                                    vm.clear()
+                                    viewmodel.clear()
                                     expression = ""
+                                    lastCharIsOperation = false
+                                    lastChar = ""
+                                    percentClicked = false
                                 }
 
                                 "CE" -> {
@@ -138,7 +144,29 @@ fun Calculator(vm: ViewModelCalculator) {
                                     }
                                 }
 
-                                "%" -> {/*TODO Implementar*/ }
+                                "%" -> {
+                                    if (!percentClicked && expression.isNotEmpty() && expression.last()
+                                            .isDigit()
+                                    ) {
+                                        val listValues = expression.split(
+                                            Regex(
+                                                "[${operations.joinToString("") { Regex.escape(it) }}]"
+                                            )
+                                        )
+                                        if (listValues.size == 2) {
+                                            val firstNumber = listValues[0].toDouble()
+                                            val percent = listValues[1].toDouble()
+                                            expression = expression.dropLastWhile { it.isDigit() }
+                                            val modifiedExpression = when (viewmodel.qualOperacao) {
+                                                "+", "-" -> ((firstNumber * (percent / 100)).toInt()).toString()
+                                                "x", "÷" -> "${(percent / 100)}"
+                                                else -> ""
+                                            }
+                                            expression += modifiedExpression
+                                        }
+                                        percentClicked = true
+                                    }
+                                }
 
                                 "0", "1", "2", "3", "4",
                                 "5", "6", "7", "8", "9" -> expression += button
@@ -174,6 +202,6 @@ fun Calculator(vm: ViewModelCalculator) {
 @Composable
 fun CalculatorPreview() {
     SimpleCalculatorInJetpackComposeTheme {
-        Calculator(vm = ViewModelCalculator())
+        Calculator(viewmodel = ViewModelCalculator())
     }
 }

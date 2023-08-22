@@ -24,15 +24,15 @@ class ViewModelCalculator : ViewModel() {
     fun realizaCalculo() {
         when (qualOperacao) {
             "+" -> {
-                result = calculateModel.add(firstNumber.toInt(), secondNumber.toInt()).toString()
+                result = calculateModel.add(firstNumber.toDouble(), secondNumber.toDouble()).toString()
             }
 
             "-" -> {
-                result = calculateModel.subtract(firstNumber.toInt(), secondNumber.toInt()).toString()
+                result = calculateModel.subtract(firstNumber.toDouble(), secondNumber.toDouble()).toString()
             }
 
             "x" -> {
-                result = calculateModel.multiply(firstNumber.toInt(), secondNumber.toInt()).toString()
+                result = calculateModel.multiply(firstNumber.toDouble(), secondNumber.toDouble()).toString()
             }
 
             "÷" -> {
