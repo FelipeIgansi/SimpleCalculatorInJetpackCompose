@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.intuitivetools.simplecalculatorinjetpackcompose
 
 import android.content.res.Configuration
@@ -17,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -71,6 +68,9 @@ fun Calculator(viewmodel: ViewModelCalculator) {
     var lastCharIsOperation by remember { mutableStateOf(false) }
     var lastChar by remember { mutableStateOf("") }
     var percentClicked by remember { mutableStateOf(false) }
+    var isValueInverted by remember { mutableStateOf(false) }
+    var resultWasClicked by remember { mutableStateOf(false) }
+
 
 
     Column(verticalArrangement = Arrangement.Bottom) {
@@ -105,17 +105,12 @@ fun Calculator(viewmodel: ViewModelCalculator) {
                             }
                             when (button) {
                                 "=" -> {
-                                    val regex = operations.joinToString("|") { Regex.escape(it) }
-                                    val parts = expression.split(Regex(regex))
-
-                                    viewmodel.firstNumber = parts[0]
-                                    viewmodel.secondNumber = parts[1]
-
-                                    viewmodel.realizaCalculo()
-                                    expression += button
+                                    expression =
+                                        viewmodel.doCalculation(operations, expression, button)
 
                                     viewmodel.firstNumber = ""
                                     viewmodel.secondNumber = ""
+                                    resultWasClicked = true
                                 }
 
                                 "+", "-", "x", "÷" -> {
@@ -135,41 +130,45 @@ fun Calculator(viewmodel: ViewModelCalculator) {
                                     percentClicked = false
                                 }
 
-                                "CE" -> {
-                                    val lastOperationIndex = expression.lastIndexOfAny(operations)
-                                    expression = if (lastOperationIndex >= 0) {
-                                        expression.dropLast(lastOperationIndex)
-                                    } else {
-                                        ""
-                                    }
-                                }
+                                "CE" -> expression = viewmodel.calcelEntry(expression, operations)
 
                                 "%" -> {
-                                    if (!percentClicked && expression.isNotEmpty() && expression.last()
-                                            .isDigit()
-                                    ) {
-                                        val listValues = expression.split(
-                                            Regex(
-                                                "[${operations.joinToString("") { Regex.escape(it) }}]"
-                                            )
-                                        )
-                                        if (listValues.size == 2) {
-                                            val firstNumber = listValues[0].toDouble()
-                                            val percent = listValues[1].toDouble()
-                                            expression = expression.dropLastWhile { it.isDigit() }
-                                            val modifiedExpression = when (viewmodel.qualOperacao) {
-                                                "+", "-" -> ((firstNumber * (percent / 100)).toInt()).toString()
-                                                "x", "÷" -> "${(percent / 100)}"
-                                                else -> ""
-                                            }
-                                            expression += modifiedExpression
-                                        }
-                                        percentClicked = true
-                                    }
+                                    expression = viewmodel.doPercentCalculate(
+                                        percentClicked,
+                                        expression,
+                                        operations
+                                    )
+                                    percentClicked = true
                                 }
 
                                 "0", "1", "2", "3", "4",
-                                "5", "6", "7", "8", "9" -> expression += button
+                                "5", "6", "7", "8", "9" -> if (!resultWasClicked)expression += button else {
+                                    viewmodel.clear()
+                                    expression = ""
+                                    lastCharIsOperation = false
+                                    lastChar = ""
+                                    percentClicked = false
+                                    resultWasClicked = false
+                                    expression += button
+                                }
+
+                                "√" -> expression = viewmodel.squareRoot(expression, operations)
+
+                                "x²" -> expression = viewmodel.powerOfTwo(expression, operations)
+
+                                "1/x" -> expression = viewmodel.oneDividedBy(expression, operations)
+
+                                "+/-" -> {
+                                    expression = viewmodel.invertSignal(
+                                        expression,
+                                        isValueInverted,
+                                        operations
+                                    )
+                                    isValueInverted = true
+                                }
+
+                                "," -> expression += viewmodel.insertComma(expression, operations)
+
                             }
                             /*TODO (inicialmente vou implementar os calculos sendo feitos com
                                dois valores e sem validação. Implementar validações para o texto
